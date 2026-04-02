@@ -249,3 +249,13 @@ body {
   90% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-10px); }
 }
+
+/* search mode */
+.mode {
+  margin: 10px 0;
+  font-size: 13px;
+  color: #555;
+  background: #f0f0f0;
+  padding: 6px 10px;
+  border-radius: 6px;
+}

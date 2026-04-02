@@ -48,8 +48,19 @@ async def upload(file: UploadFile = File(...)):
     return {"id": file_id}
 
 @app.post("/search")
-async def search(query: str):
-    query_emb = fake_embedding(query)
+async def search(query: str = None, query_id: str = None):
+
+    if query_id:
+        # use embedding of selected file
+        query_item = next((x for x in db if x["id"] == query_id), None)
+        if not query_item:
+            return []
+
+        query_emb = np.array(query_item["embedding"])
+
+    else:
+        # fallback to text query
+        query_emb = fake_embedding(query)
 
     results = []
     for item in db:

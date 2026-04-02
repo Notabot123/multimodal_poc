@@ -8,6 +8,7 @@ export default function App() {
   const [selected, setSelected] = useState(null);
   const [filter, setFilter] = useState("all");
   const [message, setMessage] = useState(null);
+  const [queryId, setQueryId] = useState(null);
 
   const upload = async (file) => {
     const formData = new FormData();
@@ -26,11 +27,18 @@ export default function App() {
   };
 
   const search = async () => {
-    const res = await axios.post(
-      "http://localhost:8000/search?query=" + query
-    );
+    let url = "http://localhost:8000/search";
+
+    if (queryId) {
+      url += "?query_id=" + queryId;
+    } else {
+      url += "?query=" + query;
+    }
+
+    const res = await axios.post(url);
     setResults(res.data);
   };
+  
 
   const getTypeLabel = (type) => {
     if (type.includes("image")) return "image";
@@ -64,11 +72,23 @@ export default function App() {
         />
       </div>
 
+      {/* Search info */}
+      <div className="mode">
+        {queryId && selected
+          ? `Searching by selected file: ${selected.filename}`
+          : query
+          ? `Searching by text: "${query}"`
+          : "No search active"}
+      </div>
+
       {/* Search */}
       <div className="search">
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setQueryId(null); // 👈 switch back to text mode
+          }}
           placeholder="Search..."
         />
         <button onClick={search}>Search</button>
@@ -102,7 +122,10 @@ export default function App() {
                 <div
                   key={r.id}
                   className={`card ${isTop ? "top-result" : ""}`}
-                  onClick={() => setSelected(r)}
+                  onClick={() => {
+                    setSelected(r);
+                    setQueryId(r.id);
+                  }}
                 >
                   {r.type.includes("image") && (
                     <img
