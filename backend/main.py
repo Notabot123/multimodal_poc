@@ -4,6 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import uuid, os, json
 import numpy as np
+from dotenv import load_dotenv
+
+load_dotenv()
+
+from services.embedding import get_embedding
+from services.speech import transcribe_audio
 
 app = FastAPI()
 
@@ -21,12 +27,13 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 db = []
 
 def fake_embedding(text):
+    """ just placeholder, delete when real embedding available """
     vec = np.random.rand(384)
     return vec / np.linalg.norm(vec)
 
+
 def cosine_similarity(a, b):
     return float(np.dot(a, b))
-
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
     file_id = str(uuid.uuid4())
@@ -35,14 +42,25 @@ async def upload(file: UploadFile = File(...)):
     with open(filepath, "wb") as f:
         f.write(await file.read())
 
-    embedding = fake_embedding(file.filename)
+    # modality handling
+    if "audio" in file.content_type:
+        text = transcribe_audio(filepath)
+    else:
+        text = file.filename  # fallback for now
+
+    try:
+        embedding = get_embedding(file.filename)
+    except Exception as e:
+        print(f"embedding defaulting to fake: {e}")
+        embedding = fake_embedding(file.filename).tolist()
 
     db.append({
         "id": file_id,
         "filename": file.filename,
         "filepath": filepath,
-        "embedding": embedding.tolist(),
-        "type": file.content_type
+        "embedding": embedding,
+        "type": file.content_type,
+        "text": text
     })
 
     return {"id": file_id}
@@ -60,7 +78,11 @@ async def search(query: str = None, query_id: str = None):
 
     else:
         # fallback to text query
-        query_emb = fake_embedding(query)
+        try:
+            query_emb = get_embedding(query)
+        except Exception as e:
+            print("embedding not available, default to fake: {e}")
+            query_emb = fake_embedding(query)
 
     results = []
     for item in db:
@@ -69,7 +91,8 @@ async def search(query: str = None, query_id: str = None):
             "id": item["id"],
             "filename": item["filename"],
             "type": item["type"],
-            "score": score
+            "score": score,
+            "text": item.get("text", "")
         })
 
     results.sort(key=lambda x: x["score"], reverse=True)

@@ -87,11 +87,22 @@ export default function App() {
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
-            setQueryId(null); // 👈 switch back to text mode
+            setQueryId(null); // switch back to text mode
           }}
           placeholder="Search..."
         />
-        <button onClick={search}>Search</button>
+        <button onClick={async () => {
+            setQueryId(null);
+
+            const res = await axios.post(
+              `http://localhost:8000/search?query=${query}`
+            );
+
+            setResults(res.data);
+          }}>
+
+          Search
+        </button>
       </div>
 
       {/* Filters */}
@@ -122,9 +133,16 @@ export default function App() {
                 <div
                   key={r.id}
                   className={`card ${isTop ? "top-result" : ""}`}
-                  onClick={() => {
+                  onClick={async () => {
                     setSelected(r);
                     setQueryId(r.id);
+                    setQuery("");
+
+                    const res = await axios.post(
+                      `http://localhost:8000/search?query_id=${r.id}`
+                    );
+
+                    setResults(res.data);
                   }}
                 >
                   {r.type.includes("image") && (
@@ -142,11 +160,13 @@ export default function App() {
                         )}`}
                       >
                         {getTypeLabel(r.type).toUpperCase()}
+                        
                       </span>
 
                       <span className="filename">
                         {r.filename}
-                      </span>
+                      </span>                     
+                      
 
                       {isTop && (
                         <span className="top-badge">
@@ -154,6 +174,15 @@ export default function App() {
                         </span>
                       )}
                     </div>
+                    {r.text && (
+                        <div
+                          className="transcript"
+                          title={r.text}  // 👈 tooltip with full text
+                        >
+                          {r.text.split(" ").slice(0, 10).join(" ")}
+                          {r.text.split(" ").length > 10 && "..."}
+                        </div>
+                      )}
 
                     {!isSupported(r.type) && (
                       <div className="unsupported">
