@@ -4,3 +4,5 @@ numpy
 python-multipart
 openai
 python-dotenv
+#openai-whisper
+#ffmpeg-python
