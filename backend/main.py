@@ -9,7 +9,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from services.embedding import get_embedding
-from services.speech import transcribe_audio, fake_transcribe
+from services.speech import transcribe_audio
+from api.visualise import router as visualise_router
+from services.db import db
 
 app = FastAPI()
 
@@ -20,11 +22,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(visualise_router)
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-db = []
+
 
 def cosine_similarity(a, b):
     return float(np.dot(a, b))
