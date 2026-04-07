@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from services.embedding import get_embedding
-from services.speech import transcribe_audio
+from services.embedding import get_embedding, fake_embedding
+from services.speech import transcribe_audio, fake_transcribe
 
 app = FastAPI()
 
@@ -26,11 +26,8 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 db = []
 
-def fake_embedding(text):
-    """ just placeholder, delete when real embedding available """
-    vec = np.random.rand(384)
-    return vec / np.linalg.norm(vec)
-
+MODE = os.getenv("EMBEDDING_MODE", "real")
+print(f"Running in {MODE.upper()} mode")
 
 def cosine_similarity(a, b):
     return float(np.dot(a, b))
@@ -44,15 +41,27 @@ async def upload(file: UploadFile = File(...)):
 
     # modality handling
     if "audio" in file.content_type:
-        text = transcribe_audio(filepath)
+        if MODE == "real":
+            try:
+                text = transcribe_audio(filepath)
+            except Exception as e:
+                print(f"whisper failed, fallback: {e}")
+                text = fake_transcribe(filepath)
+        else:
+            text = fake_transcribe(filepath)
     else:
-        text = file.filename  # fallback for now
+        text = file.filename
 
-    try:
-        embedding = get_embedding(file.filename)
-    except Exception as e:
-        print(f"embedding defaulting to fake: {e}")
-        embedding = fake_embedding(file.filename).tolist()
+    if MODE == "real":
+        try:
+            embedding = get_embedding(text)
+        except Exception as e:
+            print(f"embedding fallback: {e}")
+            embedding = fake_embedding(text)
+    else:
+        embedding = fake_embedding(text)
+
+    embedding = embedding.tolist()
 
     db.append({
         "id": file_id,
@@ -78,10 +87,13 @@ async def search(query: str = None, query_id: str = None):
 
     else:
         # fallback to text query
-        try:
-            query_emb = get_embedding(query)
-        except Exception as e:
-            print("embedding not available, default to fake: {e}")
+        if MODE == "real":
+            try:
+                query_emb = get_embedding(query)
+            except Exception as e:
+                print(f"embedding fallback: {e}")
+                query_emb = fake_embedding(query)
+        else:
             query_emb = fake_embedding(query)
 
     results = []

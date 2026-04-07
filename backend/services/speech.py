@@ -10,3 +10,9 @@ def transcribe_audio(filepath: str) -> str:
             file=audio_file
         )
     return transcript.text
+
+def fake_transcribe(filepath: str) -> str:
+    # if no API service for demo
+    filename = os.path.basename(filepath).lower()
+        
+    return f"audio recording of {filename}"

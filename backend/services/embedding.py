@@ -10,3 +10,8 @@ def get_embedding(text: str):
         input=text
     )
     return res.data[0].embedding
+
+def fake_embedding(text):
+    """ just placeholder, delete when real embedding available """
+    vec = np.random.rand(384)
+    return vec / np.linalg.norm(vec)
