@@ -4,5 +4,7 @@ numpy
 python-multipart
 openai
 python-dotenv
+scikit-learn # for tsne
+faiss-cpu # for vector db
 #openai-whisper
 #ffmpeg-python

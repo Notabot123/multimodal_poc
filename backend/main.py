@@ -10,10 +10,13 @@ load_dotenv()
 
 from services.embedding import get_embedding
 from services.speech import transcribe_audio
-from api.visualise import router as visualise_router
+from services.vector_store import build_index
+from services.vector_store import search as faiss_search
 from services.db import db
+from api.visualise import router as visualise_router
 
 app = FastAPI()
+build_index(db)
 
 app.add_middleware(
     CORSMiddleware,
@@ -69,6 +72,8 @@ async def upload(file: UploadFile = File(...)):
         "type": file.content_type,
         "text": text
     })
+    # update vector store
+    build_index(db)
 
     return {"id": file_id}
 
@@ -90,14 +95,17 @@ async def search(query: str = None, query_id: str = None):
         except Exception as e:
             print("embedding failed. Error: {e}")
 
+
+    results_idx = faiss_search(query_emb, k=5)
+
     results = []
-    for item in db:
-        score = cosine_similarity(query_emb, np.array(item["embedding"]))
+    for r in results_idx:
+        item = next(x for x in db if x["id"] == r["id"])
         results.append({
             "id": item["id"],
             "filename": item["filename"],
             "type": item["type"],
-            "score": score,
+            "score": r["score"],
             "text": item.get("text", "")
         })
 
