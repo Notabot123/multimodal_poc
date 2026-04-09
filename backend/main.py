@@ -10,6 +10,8 @@ load_dotenv()
 
 from services.embedding import get_embedding
 from services.speech import transcribe_audio
+from api.visualise import router as visualise_router
+from services.db import db
 
 app = FastAPI()
 
@@ -20,20 +22,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(visualise_router)
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-db = []
-
-def fake_embedding(text):
-    """ just placeholder, delete when real embedding available """
-    vec = np.random.rand(384)
-    return vec / np.linalg.norm(vec)
 
 
 def cosine_similarity(a, b):
     return float(np.dot(a, b))
+
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
     file_id = str(uuid.uuid4())
@@ -44,15 +42,24 @@ async def upload(file: UploadFile = File(...)):
 
     # modality handling
     if "audio" in file.content_type:
-        text = transcribe_audio(filepath)
+        try:
+            text = transcribe_audio(filepath)
+        except Exception as e:
+            print(f"transcription failed: {e}")
+            text = file.filename
     else:
-        text = file.filename  # fallback for now
+        text = file.filename
 
     try:
         embedding = get_embedding(file.filename)
     except Exception as e:
-        print(f"embedding defaulting to fake: {e}")
-        embedding = fake_embedding(file.filename).tolist()
+        print(f"embedding failed. Error: {e}")
+
+    """
+    # just for demo, store some sample vectors
+    with open("db.json", "w") as f:
+        json.dump(db, f)
+    """
 
     db.append({
         "id": file_id,
@@ -81,8 +88,7 @@ async def search(query: str = None, query_id: str = None):
         try:
             query_emb = get_embedding(query)
         except Exception as e:
-            print("embedding not available, default to fake: {e}")
-            query_emb = fake_embedding(query)
+            print("embedding failed. Error: {e}")
 
     results = []
     for item in db:

@@ -1,12 +1,10 @@
-from openai import OpenAI
 import os
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+MODE = os.getenv("EMBEDDING_MODE", "mock")
 
-def transcribe_audio(filepath: str) -> str:
-    with open(filepath, "rb") as audio_file:
-        transcript = client.audio.transcriptions.create(
-            model="gpt-4o-mini-transcribe",  # modern whisper-based model
-            file=audio_file
-        )
-    return transcript.text
+if MODE == "openai":
+    from services.providers.openai_provider import transcribe_audio
+elif MODE == "gemini":
+    from services.providers.gemini_provider import transcribe_audio
+else:
+    from services.providers.mock_provider import transcribe_audio

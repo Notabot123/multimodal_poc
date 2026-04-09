@@ -1,12 +1,11 @@
-from openai import OpenAI
 import os
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=OPENAI_API_KEY)
+MODE = os.getenv("EMBEDDING_MODE", "mock")
+print(f"Running in {MODE.upper()} mode")
 
-def get_embedding(text: str):
-    res = client.embeddings.create(
-        model="text-embedding-3-small",
-        input=text
-    )
-    return res.data[0].embedding
+if MODE == "openai":
+    from services.providers.openai_provider import get_embedding
+elif MODE == "gemini":
+    from services.providers.gemini_provider import get_embedding
+else:
+    from services.providers.mock_provider import get_embedding
