@@ -8,7 +8,7 @@ index = None
 id_map = []
 
 
-def build_index(db):
+def build_index(db, mode="exact"):
     global index, id_map
 
     if not db:
@@ -18,7 +18,13 @@ def build_index(db):
 
     dim = vectors.shape[1]
 
-    index = faiss.IndexFlatIP(dim)
+    if mode == "exact":
+        # can take a bit longer on large datasets
+        index = faiss.IndexFlatIP(dim)
+    elif mode == "hnsw":
+        # faster, more scalable but approx
+        index = faiss.IndexHNSWFlat(dim, 32)
+        
     index.add(vectors)
 
     id_map = [item["id"] for item in db]

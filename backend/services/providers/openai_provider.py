@@ -18,3 +18,17 @@ def transcribe_audio(filepath: str) -> str:
             file=audio_file
         )
     return transcript.text
+
+def describe_image(filepath):
+    with open(filepath, "rb") as f:
+        response = client.responses.create(
+            model="gpt-4o-mini",
+            input=[{
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": "Describe this image briefly in no more than 2 sentences"},
+                    {"type": "input_image", "image": f.read()}
+                ]
+            }]
+        )
+    return response.output_text

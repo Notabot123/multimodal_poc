@@ -6,5 +6,6 @@ openai
 python-dotenv
 scikit-learn # for tsne
 faiss-cpu # for vector db
+google-generativeai # gemini 2
 #openai-whisper
 #ffmpeg-python

@@ -15,3 +15,9 @@ def transcribe_audio(filepath: str) -> str:
     filename = os.path.basename(filepath).lower()
         
     return f"audio recording of {filename}"
+
+def describe_image(filepath):
+    # if no API service for demo
+    filename = os.path.basename(filepath).lower()
+        
+    return f"an image file named {filename}"

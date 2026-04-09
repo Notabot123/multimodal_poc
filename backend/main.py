@@ -6,9 +6,12 @@ import numpy as np
 from dotenv import load_dotenv
 
 load_dotenv()
+MODE = os.getenv("EMBEDDING_MODE", "mock")
 
 from services.embedding import get_embedding
+from services.providers.gemini_provider import get_embedding_from_file        
 from services.speech import transcribe_audio
+from services.caption import describe_image
 from services.vector_store import build_index, load_index
 from services.vector_store import search as faiss_search
 from services.db import db
@@ -46,19 +49,29 @@ async def upload(file: UploadFile = File(...)):
     with open(filepath, "wb") as f:
         f.write(await file.read())
 
-    # modality handling
+    # modality handling, used for labels only where gemini invoked
     if "audio" in file.content_type:
         try:
             text = transcribe_audio(filepath)
         except Exception as e:
             print(f"transcription failed: {e}")
             text = file.filename
+    elif "image" in file.content_type:
+        try:
+            text = describe_image(filepath)
+        except Exception as e:
+            print(f"caption failed: {e}")
+            text = file.filename
     else:
         text = file.filename
 
     # embedding
-    try:
-        embedding = get_embedding(text)
+    try:       
+
+        if MODE == "gemini":
+            embedding = get_embedding_from_file(filepath, file.content_type)
+        else:
+            embedding = get_embedding(text)
     except Exception as e:
         print(f"embedding failed. Error: {e}")
         return {"error": "embedding failed"}
