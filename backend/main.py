@@ -55,9 +55,11 @@ async def upload(file: UploadFile = File(...)):
     except Exception as e:
         print(f"embedding failed. Error: {e}")
 
-    # just for demo
+    """
+    # just for demo, store some sample vectors
     with open("db.json", "w") as f:
         json.dump(db, f)
+    """
 
     db.append({
         "id": file_id,
