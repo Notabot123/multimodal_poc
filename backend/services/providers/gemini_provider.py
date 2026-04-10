@@ -33,7 +33,8 @@ def get_embedding(text: str = None, filepath: str = None, mime_type: str = None)
 
         # NEW RESPONSE FORMAT:
         vec = np.array(response.embeddings[0].values)
-        return vec / np.linalg.norm(vec)
+        vec = vec / np.linalg.norm(vec)
+        return vec.tolist()
 
     except Exception as e:
         print(f"Gemini embedding error: {e}")
