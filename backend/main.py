@@ -177,8 +177,7 @@ def list_models():
     return [
         {
             "name": m.name,
-            "methods": m.supported_methods
+            "actions": m.supported_actions
         }
         for m in models
     ]
-
