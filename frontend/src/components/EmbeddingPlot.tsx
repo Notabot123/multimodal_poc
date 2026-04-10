@@ -62,7 +62,7 @@ export default function EmbeddingPlot({ onSelect }: Props) {
 
       <button onClick={loadData}>Load Visualisation</button>
 
-      <ScatterChart width={600} height={400}>
+      <ScatterChart width={1200} height={900}>
         <XAxis dataKey="x" name="X" />
         <YAxis dataKey="y" name="Y" />
 
