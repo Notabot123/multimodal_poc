@@ -1,3 +1,7 @@
+# FAISS
+faiss.index
+*.faiss
+
 # Node
 node_modules/
 dist/

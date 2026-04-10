@@ -9,9 +9,10 @@ id_map = []
 
 
 def build_index(db, mode="exact"):
-    global index, id_map
+    global index, id_map    
 
     if not db:
+        print("No db file to build FAISS index")
         return
 
     vectors = np.array([item["embedding"] for item in db]).astype("float32")
@@ -24,7 +25,7 @@ def build_index(db, mode="exact"):
     elif mode == "hnsw":
         # faster, more scalable but approx
         index = faiss.IndexHNSWFlat(dim, 32)
-        
+
     index.add(vectors)
 
     id_map = [item["id"] for item in db]
@@ -44,6 +45,8 @@ def load_index(db):
 def search(query_vector, k=5):
     if index is None:
         return []
+    
+    k = min(k, len(id_map))
 
     query_vector = np.array([query_vector]).astype("float32")
 

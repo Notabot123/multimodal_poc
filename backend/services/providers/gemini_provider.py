@@ -1,37 +1,41 @@
 import os
 import numpy as np
-import google.generativeai as genai
+import google.genai as genai
+from google.genai.types import Content, Part
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
-def get_embedding_from_file(filepath: str, mime_type: str):
+def get_embedding(text: str = None, filepath: str = None, mime_type: str = None):
+    """
+    Unified embedding function for Gemini.
+    - If `filepath` is provided → treat as multimodal file embedding
+    - Else → treat as text embedding
+    """
+
     try:
-        with open(filepath, "rb") as f:
-            content = f.read()
+        # --- FILE / MULTIMODAL EMBEDDING ---
+        if filepath:
+            with open(filepath, "rb") as f:
+                data = f.read()
 
-        response = genai.embed_content(
-            model="models/embedding-001",
-            content={
-                "mime_type": mime_type,
-                "data": content
-            }
-        )
+            response = client.models.embed_content(
+                model="models/embedding-001",
+                content=Content(
+                    parts=[Part.from_bytes(data=data, mime_type=mime_type)]
+                )
+            )
 
-        vec = np.array(response["embedding"])
+        # --- TEXT EMBEDDING ---
+        else:
+            response = client.models.embed_content(
+                model="models/embedding-001",
+                content=text
+            )
+
+        vec = np.array(response.embedding.values)
         return vec / np.linalg.norm(vec)
 
     except Exception as e:
-        print(f"Gemini multimodal embedding error: {e}")
+        print(f"Gemini embedding error: {e}")
         raise
-
-
-def get_embedding(text: str):
-    # fallback for text queries
-    response = genai.embed_content(
-        model="models/embedding-001",
-        content=text
-    )
-
-    vec = np.array(response["embedding"])
-    return vec / np.linalg.norm(vec)

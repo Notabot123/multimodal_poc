@@ -9,7 +9,7 @@ load_dotenv()
 MODE = os.getenv("EMBEDDING_MODE", "mock")
 
 from services.embedding import get_embedding
-from services.providers.gemini_provider import get_embedding_from_file        
+   
 from services.speech import transcribe_audio
 from services.caption import describe_image
 from services.vector_store import build_index, load_index
@@ -22,9 +22,12 @@ app = FastAPI()
 #  fast lookup map
 db_map = {item["id"]: item for item in db}
 
+INDEX_FILE = "faiss.index"
 #  load FAISS index if exists
-load_index(db)
-if not db:
+if os.path.exists(INDEX_FILE):
+    load_index(db)
+else:
+    print("No index file found, rebuilding")
     build_index(db)
 
 app.add_middleware(
@@ -44,38 +47,28 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
     file_id = str(uuid.uuid4())
-    filepath = os.path.join(UPLOAD_DIR, file_id + "_" + file.filename)
+    filepath = os.path.join(UPLOAD_DIR, f"{file_id}_{file.filename}")
 
+    # Save file
     with open(filepath, "wb") as f:
         f.write(await file.read())
 
-    # modality handling, used for labels only where gemini invoked
-    if "audio" in file.content_type:
-        try:
-            text = transcribe_audio(filepath)
-        except Exception as e:
-            print(f"transcription failed: {e}")
-            text = file.filename
-    elif "image" in file.content_type:
-        try:
-            text = describe_image(filepath)
-        except Exception as e:
-            print(f"caption failed: {e}")
-            text = file.filename
-    else:
-        text = file.filename
+    # Generate label text (caption/transcription/filename fallback)
+    text = await generate_label_text(file, filepath)
 
-    # embedding
-    try:       
-
+    # Generate embedding
+    try:
         if MODE == "gemini":
-            embedding = get_embedding_from_file(filepath, file.content_type)
+            # Gemini can embed any file type
+            embedding = get_embedding(filepath=filepath, mime_type=file.content_type)
         else:
+            # OpenAI can only embed text
             embedding = get_embedding(text)
     except Exception as e:
-        print(f"embedding failed. Error: {e}")
+        print(f"Embedding failed: {e}")
         return {"error": "embedding failed"}
 
+    # Build item
     item = {
         "id": file_id,
         "filename": file.filename,
@@ -85,17 +78,39 @@ async def upload(file: UploadFile = File(...)):
         "text": text
     }
 
+    # Update DB
     db.append(item)
-    db_map[file_id] = item  #  update map
+    db_map[file_id] = item
 
-    # write db to file, until we transition to proper db
     with open("db.json", "w") as f:
         json.dump(db, f)
 
-    # update FAISS index
+    # Update FAISS
     build_index(db)
 
     return {"id": file_id}
+
+async def generate_label_text(file: UploadFile, filepath: str) -> str:
+    content_type = file.content_type
+
+    # Audio transcription
+    if "audio" in content_type:
+        try:
+            return transcribe_audio(filepath)
+        except Exception as e:
+            print(f"Transcription failed: {e}")
+            return file.filename
+
+    # Image caption
+    if "image" in content_type:
+        try:
+            return describe_image(filepath)
+        except Exception as e:
+            print(f"Caption failed: {e}")
+            return file.filename
+
+    # Default filename
+    return file.filename
 
 
 @app.post("/search")
