@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./styles.css";
 import EmbeddingPlot from "./components/EmbeddingPlot";
-
-const API_BASE = "http://localhost:8000";
+import { BACKEND_URL } from "../config";
 
 export default function App() {
   const [query, setQuery] = useState("");
@@ -18,7 +17,7 @@ export default function App() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const resUpload = await axios.post(`${API_BASE}/upload`, formData);
+    const resUpload = await axios.post(`${BACKEND_URL}/upload`, formData);
 
     const newId = resUpload.data.id;
 
@@ -27,7 +26,7 @@ export default function App() {
     setQuery("");
 
     const resSearch = await axios.post(
-      `${API_BASE}/search?query_id=${newId}`
+      `${BACKEND_URL}/search?query_id=${newId}`
     );
 
     setResults(resSearch.data);
@@ -45,7 +44,7 @@ export default function App() {
   };
 
   const search = async () => {
-    let url = `${API_BASE}/search`;
+    let url = `${BACKEND_URL}/search`;
 
     if (queryId) {
       url += "?query_id=" + queryId;
@@ -121,7 +120,7 @@ export default function App() {
               setQueryId(null);
 
               const res = await axios.post(
-                `${API_BASE}/search?query=${query}`
+                `${BACKEND_URL}/search?query=${query}`
               );
 
               setResults(res.data);
@@ -165,7 +164,7 @@ export default function App() {
                         setQuery("");
 
                         const res = await axios.post(
-                          `${API_BASE}/search?query_id=${r.id}`
+                          `${BACKEND_URL}/search?query_id=${r.id}`
                         );
 
                         setResults(res.data);
@@ -174,7 +173,7 @@ export default function App() {
                       {r.type.includes("image") && (
                         <img
                           className="thumb"
-                          src={`${API_BASE}/file/${r.id}`}
+                          src={`${BACKEND_URL}/file/${r.id}`}
                         />
                       )}
 
@@ -243,20 +242,20 @@ export default function App() {
 
                   {selected.type.includes("image") && (
                     <img
-                      src={`${API_BASE}/file/${selected.id}`}
+                      src={`${BACKEND_URL}/file/${selected.id}`}
                     />
                   )}
 
                   {selected.type.includes("audio") && (
                     <audio
                       controls
-                      src={`${API_BASE}/file/${selected.id}`}
+                      src={`${BACKEND_URL}/file/${selected.id}`}
                     />
                   )}
 
                   {selected.type.includes("pdf") && (
                     <iframe
-                      src={`${API_BASE}/file/${selected.id}`}
+                      src={`${BACKEND_URL}/file/${selected.id}`}
                     />
                   )}
 
@@ -277,7 +276,7 @@ export default function App() {
             setQuery("");
 
             const res = await axios.post(
-              `${API_BASE}/search?query_id=${item.id}`
+              `${BACKEND_URL}/search?query_id=${item.id}`
             );
 
             setResults(res.data);

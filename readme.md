@@ -19,8 +19,8 @@ cd frontend
 npm install
 npm run dev
 ```
-## .env File
-.env var:
+## .env Files
+.env var for python backend:
 ```
 OPENAI_API_KEY = your_key_here
 GEMINI_API_KEY=your_key_here
@@ -32,6 +32,11 @@ EMBEDDING_MODE - can be set as openai, gemini or mock (or left blank defaults mo
 
 LOAD_PREBUILT_DB just contains a few samples.
 You'd want to copy 'samples' to 'uploads' folder, if you're on a device without access to openAI/other
+
+A second .env file within frontend folder:
+```
+REACT_APP_BACKEND_URL=http://localhost:8000 (example)
+```
 
 ## Database reset
 to reset db:
