@@ -152,3 +152,33 @@ def get_file(file_id: str):
     item = db_map.get(file_id)
     if item:
         return FileResponse(item["filepath"])
+
+@app.get("/")
+def root():
+    return {"status": "ok", "message": "API is running"}
+
+@app.get("/favicon.ico")
+def favicon():
+    return {}
+
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
+
+# temp to assess models and methods
+@app.get("/models")
+def list_models():
+    import google.genai as genai
+    import os
+
+    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    models = client.models.list()
+
+    return [
+        {
+            "name": m.name,
+            "methods": m.supported_methods
+        }
+        for m in models
+    ]
+
