@@ -9,8 +9,8 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 def get_embedding(text: str = None, filepath: str = None, mime_type: str = None):
     """
     Unified embedding function for Gemini.
-    - If `filepath` is provided → treat as multimodal file embedding
-    - Else → treat as text embedding
+    - If `filepath` is provided → multimodal embedding
+    - Else → text embedding
     """
 
     try:
@@ -21,16 +21,18 @@ def get_embedding(text: str = None, filepath: str = None, mime_type: str = None)
 
             response = client.models.embed_content(
                 model="models/embedding-001",
-                content=Content(
-                    parts=[Part.from_bytes(data=data, mime_type=mime_type)]
-                )
+                contents=[
+                    Content(
+                        parts=[Part.from_bytes(data=data, mime_type=mime_type)]
+                    )
+                ]
             )
 
         # --- TEXT EMBEDDING ---
         else:
             response = client.models.embed_content(
                 model="models/embedding-001",
-                content=text
+                contents=[text]
             )
 
         vec = np.array(response.embedding.values)
