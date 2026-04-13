@@ -51,7 +51,7 @@ def describe_image(filepath: str) -> str:
             image_bytes = f.read()
 
         response = client.models.generate_content(
-            model="models/gemini-2.0-flash",
+            model="models/gemini-2.5-flash",
             contents=[
                 Content(
                     parts=[
@@ -77,7 +77,7 @@ def transcribe_audio(filepath: str) -> str:
             audio_bytes = f.read()
 
         response = client.models.generate_content(
-            model="models/gemini-2.0-flash",  # or gemini-2.0-pro
+            model="models/gemini-2.5-flash",
             contents=[
                 Content(
                     parts=[
