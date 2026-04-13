@@ -35,7 +35,7 @@ You'd want to copy 'samples' to 'uploads' folder, if you're on a device without 
 
 A second .env file within frontend folder:
 ```
-REACT_APP_BACKEND_URL=http://localhost:8000 (example)
+VITE_API_URL=http://localhost:8000 (example)
 ```
 
 ## Database reset
