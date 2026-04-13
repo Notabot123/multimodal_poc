@@ -5,7 +5,7 @@ MODE = os.getenv("EMBEDDING_MODE", "mock")
 if MODE == "openai":
     from services.providers.openai_provider import transcribe_audio
 elif MODE == "gemini":
-    # no transcribe feature with gemini, utilise openAI
-    from services.providers.openai_provider import transcribe_audio
+    # tryno transcribe feature with gemini
+    from services.providers.gemini_provider import transcribe_audio
 else:
     from services.providers.mock_provider import transcribe_audio
