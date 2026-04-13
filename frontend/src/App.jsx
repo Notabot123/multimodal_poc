@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./styles.css";
 import EmbeddingPlot from "./components/EmbeddingPlot";
-import { BACKEND_URL } from "../config";
+import { BACKEND_URL } from "./config";
 
 export default function App() {
   const [query, setQuery] = useState("");
