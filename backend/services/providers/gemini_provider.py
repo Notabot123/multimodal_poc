@@ -51,7 +51,7 @@ def describe_image(filepath: str) -> str:
             image_bytes = f.read()
 
         response = client.models.generate_content(
-            model="models/gemini-1.5-flash",
+            model="models/gemini-2.0-flash",
             contents=[
                 Content(
                     parts=[
@@ -67,7 +67,7 @@ def describe_image(filepath: str) -> str:
             ]
         )
 
-        return response.text
+        return response.candidates[0].content.parts[0].text #return response.text
 
     except Exception as e:
         print(f"Gemini image error: {e}")
@@ -79,7 +79,7 @@ def transcribe_audio(filepath: str) -> str:
             audio_bytes = f.read()
 
         response = client.models.generate_content(
-            model="models/gemini-1.5-flash",  # or gemini-1.5-pro
+            model="models/gemini-2.0-flash",  # or gemini-2.0-pro
             contents=[
                 Content(
                     parts=[
@@ -93,7 +93,7 @@ def transcribe_audio(filepath: str) -> str:
             ]
         )
 
-        return response.text
+        return response.candidates[0].content.parts[0].text #return response.text
 
     except Exception as e:
         print(f"Gemini transcription error: {e}")
