@@ -59,9 +59,7 @@ def describe_image(filepath: str) -> str:
                             data=image_bytes,
                             mime_type=mime
                         ),
-                        Part.from_text(
-                            "Describe this image briefly in no more than 2 sentences."
-                        )
+                        Part.from_text(text="Transcribe this audio accurately.")
                     ]
                 )
             ]
