@@ -8,7 +8,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { BACKEND_URL } from "../config";
+import { VITE_API_URL } from "../config";
 
 type Point = {
   id: string;
@@ -40,7 +40,7 @@ export default function EmbeddingPlot({ onSelect }: Props) {
   const [points, setPoints] = useState<Point[]>([]);
 
   const loadData = async () => {
-    const res = await axios.get<Point[]>(`${BACKEND_URL}/visualise`);
+    const res = await axios.get<Point[]>(`${VITE_API_URL}/visualise`);
     setPoints(res.data);
   };
 
